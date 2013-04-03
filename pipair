@@ -1,8 +1,12 @@
 #!/bin/bash
 
 unset JAVA_TOOL_OPTIONS
+
+args=$@
+declare args[0]="`pwd`/$1"
+
 cd "$(dirname "$0")"
-java -Xmx64m -cp 'bin:pi/bin' ca.uwaterloo.pi.Main $@
+java -Xmx64m -cp 'bin:pi/bin' ca.uwaterloo.pi.Main $args
 exitcode=$?
 # echo "Bug Detector exit with status code $exitcode"
 exit $exitcode
