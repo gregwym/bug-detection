@@ -1,6 +1,7 @@
 package ca.uwaterloo.pi;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,45 +12,38 @@ import java.util.List;
 public class Main {
 
 	public Main() {
-		
+
 	}
 
 	/**
 	 * @param args
-	 * @throws IOException 
-	 * @throws InterruptedException 
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
 		Float confidenceThreshold = 0.65f;
 		Integer supportThreshold = 3;
-		if(args.length > 1) {
+		Integer depth = 0;
+
+		if (args.length > 2) {
 			supportThreshold = Integer.valueOf(args[1]);
 			confidenceThreshold = Integer.valueOf(args[2]) / 100.0f;
 		}
-		
-		// Read call graph from input file
-		InputStream inStream = new FileInputStream(args[0]);
-		BufferedReader optReader = new BufferedReader( new InputStreamReader( inStream ));
-		
-		// Read in all lines
-		List<String> rawLines = new ArrayList<String>();
-		if(!optReader.ready()) {
-			optReader.close();
-			throw new Exception("optReader not ready");
+		if (args.length > 3) {
+			depth = Integer.valueOf(args[3]);
 		}
-		while(optReader.ready()) {
-			String line = optReader.readLine();
-			rawLines.add(line);
-		}
-		optReader.close();
-		
+
+		// Create raw call graph file representation
+		File rawCallGraph = new File(args[0]);
+
+		// Construct register office, parser and analyst
 		RegisterOffice registerOffice = new RegisterOffice();
-		
-		// Parse call graph
 		CallGraphParser parser = new CallGraphParser(registerOffice);
-		parser.parseRawCallGraph(rawLines);
-		
-		RelationAnalyst analyst = new RelationAnalyst(registerOffice, confidenceThreshold, supportThreshold);
+		RelationAnalyst analyst = new RelationAnalyst(registerOffice, confidenceThreshold, supportThreshold, depth);
+
+		// Parse call graph
+		parser.parseRawCallGraph(rawCallGraph);
+
+		// Analysis function call relations
 		analyst.analysis(parser.getCallerToCallee(), parser.getCalleeToCaller());
 	}
 
