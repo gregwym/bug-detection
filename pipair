@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 unset JAVA_TOOL_OPTIONS
 # Export the call graph to temp file
 opt -print-callgraph $bc 2>__callgraph.tmp >/dev/null
-java -Xmx64m -cp 'bin:pi/bin' ca.uwaterloo.pi.Main "`pwd`/__callgraph.tmp" $2 $3
+java -Xmx64m -cp 'bin:pi/bin' ca.uwaterloo.pi.Main "`pwd`/__callgraph.tmp" $2 $3 $4
 exitcode=$?
 # echo "Bug Detector exit with status code $exitcode"
 rm -f __callgraph.tmp

@@ -2,8 +2,8 @@ package ca.uwaterloo.pi;
 
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,15 +21,31 @@ public class RelationAnalyst {
 	}
 
 	/**
-	 * Analysis the given calling relationship mappings
+	 * Analysis the given calling relationship mappings. The result will be
+	 * output to stdout.
 	 * 
 	 * @param callerToCallee
 	 * @param calleeToCaller
 	 * @throws Exception
 	 */
 	public void analysis(Map<Integer, Set<Integer>> callerToCallee, Map<Integer, Set<Integer>> calleeToCaller) throws Exception {
-		int i = 0;
+		int i = 0, depth = 0;
 		Map<FunctionPair, FunctionStat> stats = new HashMap<FunctionPair, FunctionStat>();
+		
+		if (this.depth > 0) {
+			Map<Integer, Set<Integer>> newMapping = new HashMap<Integer, Set<Integer>>();
+			for (Integer caller: callerToCallee.keySet()) {
+				Set<Integer> callees = new HashSet<Integer>(callerToCallee.get(caller));
+				newMapping.put(caller, callees);
+				
+				for(depth = this.depth; depth > 0; depth--) {
+					for(Integer callee: new HashSet<Integer>(callees)) {
+						callees.addAll(callerToCallee.get(callee));
+					}
+				}
+			}
+			callerToCallee = newMapping;
+		}
 
 		for (Integer calleeId : calleeToCaller.keySet()) {
 			Set<Integer> callers = calleeToCaller.get(calleeId);
@@ -37,8 +53,7 @@ public class RelationAnalyst {
 			Integer totalFunction = this.registerOffice.totalRegistration();
 
 			// Count times AB appears together
-			Integer[] supportABs = new Integer[totalFunction];
-			Arrays.fill(supportABs, 0);
+			int[] supportABs = new int[totalFunction];
 
 			for (Integer callerId : callers) {
 				Set<Integer> callees = callerToCallee.get(callerId);
