@@ -3,6 +3,7 @@
 #
 
 ANT = ant
+export JAVA_TOOL_OPTIONS := -Xmx64m
 
 .PHONY: Main
 
