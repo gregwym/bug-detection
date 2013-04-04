@@ -53,8 +53,7 @@ public class CallGraphParser {
 	 */
 	public void parseRawCallGraph(File rawCallGraph) throws Exception {
 		// Open a BufferedReader for the given call graph file
-		InputStream inStream = new FileInputStream(rawCallGraph);
-		BufferedReader optReader = new BufferedReader(new InputStreamReader(inStream));
+		BufferedReader optReader = new BufferedReader(new InputStreamReader(new FileInputStream(rawCallGraph)));
 
 		// Make sure the reader is readable
 		if (!optReader.ready()) {
@@ -68,9 +67,8 @@ public class CallGraphParser {
 		this.calleeToCaller = new HashMap<Integer, Set<Integer>>();
 
 		// Read through each line and construct the mapping
-		while (optReader.ready()) {
-			String line = optReader.readLine();
-
+		String line = null;
+		while ((line = optReader.readLine()) != null) {
 			// Match the line with header and call
 			Matcher header = this.functionHeader.matcher(line);
 			Matcher call = this.functionCall.matcher(line);

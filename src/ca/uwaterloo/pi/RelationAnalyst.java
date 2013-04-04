@@ -30,18 +30,21 @@ public class RelationAnalyst {
 	 * @throws Exception
 	 */
 	public void analysis(Map<Integer, Set<Integer>> callerToCallee, Map<Integer, Set<Integer>> calleeToCaller) throws Exception {
-		int i = 0, depth = 0;
+		// Looping variables and function call statistics
+		int i = 0;
+		int totalFunction = this.registerOffice.totalRegistration();
 		Map<FunctionPair, FunctionStat> stats = new HashMap<FunctionPair, FunctionStat>();
 
+		// For each callee, check all its caller's call graph for pairs
 		for (Entry<Integer, Set<Integer>> entry : calleeToCaller.entrySet()) {
 			int calleeId = entry.getKey();
 			Set<Integer> callers = entry.getValue();
 			int supportA = callers.size();
-			int totalFunction = this.registerOffice.totalRegistration();
 
-			// Count times AB appears together
+			// Array counts times AB appears together
 			int[] supportABs = new int[totalFunction];
 
+			// Go through all caller's call graph, count pairs
 			for (int callerId : callers) {
 				Set<Integer> callees = callerToCallee.get(callerId);
 				for (int callingId : callees) {
@@ -49,6 +52,7 @@ public class RelationAnalyst {
 				}
 			}
 
+			// Save statistic info for pairs that beyond threshold
 			for (i = 0; i < totalFunction; i++) {
 				if (i == calleeId) {
 					continue;
@@ -64,23 +68,27 @@ public class RelationAnalyst {
 			}
 		}
 
+		// For each caller, check whether the call pair exists
 		for (Entry<Integer, Set<Integer>> entry : callerToCallee.entrySet()) {
 			int callerId = entry.getKey();
 			String caller = this.registerOffice.getName(callerId);
 			Set<Integer> originalCallees = entry.getValue();
 			Set<Integer> callees = new HashSet<Integer>(originalCallees);
 
+			// Fetch inner callees from current scope, if depth > 0
 			if (this.depth > 0) {
-				for (depth = this.depth; depth > 0; depth--) {
+				for (i = this.depth; i > 0; i--) {
 					for (int callee : new HashSet<Integer>(callees)) {
 						callees.addAll(callerToCallee.get(callee));
 					}
 				}
 			}
 
+			// For each statistic data, check appearance of pair
 			for (Entry<FunctionPair, FunctionStat> statEntry : stats.entrySet()) {
 				FunctionPair pair = statEntry.getKey();
 				if (originalCallees.contains(pair.id1) && (!callees.contains(pair.id2))) {
+					// If A appeared but B did, treat as a bug
 					System.out.println("bug: " + this.registerOffice.getName(pair.id1) + " in " + caller + " pair: " + pair + " " + statEntry.getValue());
 				}
 			}
