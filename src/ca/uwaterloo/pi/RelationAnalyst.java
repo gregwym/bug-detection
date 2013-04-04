@@ -31,21 +31,6 @@ public class RelationAnalyst {
 	public void analysis(Map<Integer, Set<Integer>> callerToCallee, Map<Integer, Set<Integer>> calleeToCaller) throws Exception {
 		int i = 0, depth = 0;
 		Map<FunctionPair, FunctionStat> stats = new HashMap<FunctionPair, FunctionStat>();
-		
-		if (this.depth > 0) {
-			Map<Integer, Set<Integer>> newMapping = new HashMap<Integer, Set<Integer>>();
-			for (Integer caller: callerToCallee.keySet()) {
-				Set<Integer> callees = new HashSet<Integer>(callerToCallee.get(caller));
-				newMapping.put(caller, callees);
-				
-				for(depth = this.depth; depth > 0; depth--) {
-					for(Integer callee: new HashSet<Integer>(callees)) {
-						callees.addAll(callerToCallee.get(callee));
-					}
-				}
-			}
-			callerToCallee = newMapping;
-		}
 
 		for (Integer calleeId : calleeToCaller.keySet()) {
 			Set<Integer> callers = calleeToCaller.get(calleeId);
@@ -79,11 +64,21 @@ public class RelationAnalyst {
 
 		for (Integer callerId : callerToCallee.keySet()) {
 			String caller = this.registerOffice.getName(callerId);
-			Set<Integer> callees = callerToCallee.get(callerId);
+			Set<Integer> originalCallees = callerToCallee.get(callerId);
+			Set<Integer> callees = new HashSet<Integer>(originalCallees);
+			
+			if (this.depth > 0) {
+				for(depth = this.depth; depth > 0; depth--) {
+					for(Integer callee: new HashSet<Integer>(callees)) {
+						callees.addAll(callerToCallee.get(callee));
+					}
+				}
+			}
+			
 			for (FunctionPair pair : stats.keySet()) {
 				if (callees == null) {
 					throw new Exception("Null Callees");
-				} else if (callees.contains(pair.id1) && (!callees.contains(pair.id2))) {
+				} else if (originalCallees.contains(pair.id1) && (!callees.contains(pair.id2))) {
 					System.out.println("bug: " + this.registerOffice.getName(pair.id1) + " in " + caller + " pair: " + pair + " " + stats.get(pair));
 				}
 			}
