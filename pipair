@@ -1,12 +1,19 @@
 #!/bin/bash
 
+# Byte-code full absolute path
 bc="`pwd`/$1"
 
+# Change to script locate dir
 cd "$(dirname "$0")"
+
+# Make source with javac/ant option
+export JAVA_TOOL_OPTIONS=-Xmx64m
 make -C pi all 1>/dev/null 2>/dev/null
 make all 1>/dev/null 2>/dev/null
 
+# Unset options
 unset JAVA_TOOL_OPTIONS
+# Export the call graph to temp file
 opt -print-callgraph $bc 2>__callgraph.tmp >/dev/null
 java -Xmx64m -cp 'bin:pi/bin' ca.uwaterloo.pi.Main "`pwd`/__callgraph.tmp" $2 $3
 exitcode=$?
