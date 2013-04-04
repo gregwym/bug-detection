@@ -1,13 +1,16 @@
 #!/bin/bash
 
-unset JAVA_TOOL_OPTIONS
-
-args=$@
-declare args[0]="`pwd`/$1"
+bc="`pwd`/$1"
 
 cd "$(dirname "$0")"
-java -Xmx64m -cp 'bin:pi/bin' ca.uwaterloo.pi.Main $args
+make -C pi all 1>/dev/null 2>/dev/null
+make all 1>/dev/null 2>/dev/null
+
+unset JAVA_TOOL_OPTIONS
+opt -print-callgraph $bc 2>__callgraph.tmp >/dev/null
+java -Xmx64m -cp 'bin:pi/bin' ca.uwaterloo.pi.Main "`pwd`/__callgraph.tmp" $2 $3
 exitcode=$?
 # echo "Bug Detector exit with status code $exitcode"
+rm -f __callgraph.tmp
 exit $exitcode
 
