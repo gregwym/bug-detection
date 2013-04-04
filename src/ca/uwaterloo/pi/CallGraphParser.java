@@ -3,8 +3,8 @@ package ca.uwaterloo.pi;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -53,50 +53,46 @@ public class CallGraphParser {
 	 */
 	public void parseRawCallGraph(File rawCallGraph) throws Exception {
 		// Open a BufferedReader for the given call graph file
-		BufferedReader optReader = new BufferedReader(new InputStreamReader(new FileInputStream(rawCallGraph)));
-
-		// Make sure the reader is readable
-		if (!optReader.ready()) {
-			optReader.close();
-			throw new Exception("optReader not ready");
-		}
-
-		// Initialize mappings
-		int callerId = -1; // Current scope's caller id
-		this.callerToCallee = new HashMap<Integer, Set<Integer>>();
-		this.calleeToCaller = new HashMap<Integer, Set<Integer>>();
-
-		// Read through each line and construct the mapping
-		String line = null;
-		while ((line = optReader.readLine()) != null) {
-			// Match the line with header and call
-			Matcher header = this.functionHeader.matcher(line);
-			Matcher call = this.functionCall.matcher(line);
-
-			if (header.find()) {
-				// If it matches with header pattern, register the caller name
-				// and set current scope caller id
-				String caller = header.group(1);
-				callerId = this.registerOffice.register(caller);
-				this.callerToCallee.put(callerId, new HashSet<Integer>());
-			} else if (callerId != -1 && call.find()) {
-				// If it matches with call pattern, register the callee name and
-				// save to both mapping
-				String callee = call.group(2);
-				int calleeId = this.registerOffice.register(callee);
-				this.callerToCallee.get(callerId).add(calleeId);
-
-				Set<Integer> callers = this.calleeToCaller.get(calleeId);
-				if (callers == null) {
-					callers = new HashSet<Integer>();
-					this.calleeToCaller.put(calleeId, callers);
+		BufferedReader optReader = new BufferedReader(new InputStreamReader(new FileInputStream(rawCallGraph), "utf-8"));
+		
+		try {
+			// Initialize mappings
+			int callerId = -1; // Current scope's caller id
+			this.callerToCallee = new HashMap<Integer, Set<Integer>>();
+			this.calleeToCaller = new HashMap<Integer, Set<Integer>>();
+	
+			// Read through each line and construct the mapping
+			String line = null;
+			while ((line = optReader.readLine()) != null) {
+				// Match the line with header and call
+				Matcher header = this.functionHeader.matcher(line);
+				Matcher call = this.functionCall.matcher(line);
+	
+				if (header.find()) {
+					// If it matches with header pattern, register the caller name
+					// and set current scope caller id
+					String caller = header.group(1);
+					callerId = this.registerOffice.register(caller);
+					this.callerToCallee.put(callerId, new HashSet<Integer>());
+				} else if (callerId != -1 && call.find()) {
+					// If it matches with call pattern, register the callee name and
+					// save to both mapping
+					String callee = call.group(2);
+					int calleeId = this.registerOffice.register(callee);
+					this.callerToCallee.get(callerId).add(calleeId);
+	
+					Set<Integer> callers = this.calleeToCaller.get(calleeId);
+					if (callers == null) {
+						callers = new HashSet<Integer>();
+						this.calleeToCaller.put(calleeId, callers);
+					}
+					callers.add(callerId);
 				}
-				callers.add(callerId);
 			}
+		} finally {
+			// Close the reader
+			optReader.close();
 		}
-
-		// Close the reader
-		optReader.close();
 	}
 
 }
