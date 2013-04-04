@@ -5,15 +5,16 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class RelationAnalyst {
 	private RegisterOffice registerOffice;
-	private Float confidenceThreshold;
-	private Integer supportThreshold;
-	private Integer depth;
+	private float confidenceThreshold;
+	private int supportThreshold;
+	private int depth;
 
-	public RelationAnalyst(RegisterOffice registerOffice, Float confidenceThreshold, Integer supportThreshold, Integer depth) {
+	public RelationAnalyst(RegisterOffice registerOffice, float confidenceThreshold, int supportThreshold, int depth) {
 		this.registerOffice = registerOffice;
 		this.confidenceThreshold = confidenceThreshold;
 		this.supportThreshold = supportThreshold;
@@ -32,17 +33,18 @@ public class RelationAnalyst {
 		int i = 0, depth = 0;
 		Map<FunctionPair, FunctionStat> stats = new HashMap<FunctionPair, FunctionStat>();
 
-		for (Integer calleeId : calleeToCaller.keySet()) {
-			Set<Integer> callers = calleeToCaller.get(calleeId);
-			Integer supportA = callers.size();
-			Integer totalFunction = this.registerOffice.totalRegistration();
+		for (Entry<Integer, Set<Integer>> entry : calleeToCaller.entrySet()) {
+			int calleeId = entry.getKey();
+			Set<Integer> callers = entry.getValue();
+			int supportA = callers.size();
+			int totalFunction = this.registerOffice.totalRegistration();
 
 			// Count times AB appears together
 			int[] supportABs = new int[totalFunction];
 
-			for (Integer callerId : callers) {
+			for (int callerId : callers) {
 				Set<Integer> callees = callerToCallee.get(callerId);
-				for (Integer callingId : callees) {
+				for (int callingId : callees) {
 					supportABs[callingId]++;
 				}
 			}
@@ -52,8 +54,8 @@ public class RelationAnalyst {
 					continue;
 				}
 
-				Integer supportAB = supportABs[i];
-				Float confidence = (float) supportAB / (float) supportA;
+				int supportAB = supportABs[i];
+				float confidence = (float) supportAB / (float) supportA;
 				if (confidence >= this.confidenceThreshold && supportAB >= this.supportThreshold) {
 					FunctionPair pair = new FunctionPair(calleeId, i);
 					FunctionStat stat = new FunctionStat(supportAB, confidence);
@@ -62,24 +64,24 @@ public class RelationAnalyst {
 			}
 		}
 
-		for (Integer callerId : callerToCallee.keySet()) {
+		for (Entry<Integer, Set<Integer>> entry : callerToCallee.entrySet()) {
+			int callerId = entry.getKey();
 			String caller = this.registerOffice.getName(callerId);
-			Set<Integer> originalCallees = callerToCallee.get(callerId);
+			Set<Integer> originalCallees = entry.getValue();
 			Set<Integer> callees = new HashSet<Integer>(originalCallees);
-			
+
 			if (this.depth > 0) {
-				for(depth = this.depth; depth > 0; depth--) {
-					for(Integer callee: new HashSet<Integer>(callees)) {
+				for (depth = this.depth; depth > 0; depth--) {
+					for (int callee : new HashSet<Integer>(callees)) {
 						callees.addAll(callerToCallee.get(callee));
 					}
 				}
 			}
-			
-			for (FunctionPair pair : stats.keySet()) {
-				if (callees == null) {
-					throw new Exception("Null Callees");
-				} else if (originalCallees.contains(pair.id1) && (!callees.contains(pair.id2))) {
-					System.out.println("bug: " + this.registerOffice.getName(pair.id1) + " in " + caller + " pair: " + pair + " " + stats.get(pair));
+
+			for (Entry<FunctionPair, FunctionStat> statEntry : stats.entrySet()) {
+				FunctionPair pair = statEntry.getKey();
+				if (originalCallees.contains(pair.id1) && (!callees.contains(pair.id2))) {
+					System.out.println("bug: " + this.registerOffice.getName(pair.id1) + " in " + caller + " pair: " + pair + " " + statEntry.getValue());
 				}
 			}
 		}
@@ -92,10 +94,10 @@ public class RelationAnalyst {
 	 * @author Greg Wang
 	 */
 	private class FunctionPair {
-		public Integer id1;
-		public Integer id2;
+		public int id1;
+		public int id2;
 
-		public FunctionPair(Integer id1, Integer id2) {
+		public FunctionPair(int id1, int id2) {
 			this.id1 = id1;
 			this.id2 = id2;
 		}
@@ -137,9 +139,7 @@ public class RelationAnalyst {
 				name1 = registerOffice.getName(id1);
 				name2 = registerOffice.getName(id2);
 			} catch (Exception e) {
-				// Should never fail
-				e.printStackTrace();
-				System.exit(-1);
+				return "";
 			}
 
 			// Display the pair name in alphabetical order
@@ -156,8 +156,8 @@ public class RelationAnalyst {
 	 * @author Greg Wang
 	 */
 	private static class FunctionStat {
-		public Integer supportAB;
-		public Float confidence;
+		public int supportAB;
+		public float confidence;
 		private static final NumberFormat numFormat;
 
 		static {
@@ -167,7 +167,7 @@ public class RelationAnalyst {
 			numFormat.setRoundingMode(RoundingMode.HALF_EVEN);
 		}
 
-		public FunctionStat(Integer supportAB, Float confidence) {
+		public FunctionStat(int supportAB, float confidence) {
 			this.supportAB = supportAB;
 			this.confidence = confidence;
 		}

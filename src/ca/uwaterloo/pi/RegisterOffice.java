@@ -20,7 +20,7 @@ public class RegisterOffice {
 	 *            function name
 	 * @return function id
 	 */
-	public Integer register(String name) {
+	public int register(String name) {
 		// Next id is the size of current registration
 		int id = this.registration.size();
 		// If contain the name, return its ID. Should never fail
@@ -48,7 +48,7 @@ public class RegisterOffice {
 	 * @throws Exception
 	 *             the name has not been registered yet
 	 */
-	public Integer getId(String name) throws Exception {
+	public int getId(String name) throws Exception {
 		Integer id = this.registration.get(name);
 		if (id == null) {
 			throw new Exception("Unknown name: " + name);
@@ -64,7 +64,7 @@ public class RegisterOffice {
 	 * @return function name
 	 * @throws Exception
 	 */
-	public String getName(Integer id) throws Exception {
+	public String getName(int id) throws Exception {
 		String name = this.reverseMatch.get(id);
 		if (name == null) {
 			throw new Exception("Unknown id: " + id);
@@ -75,7 +75,7 @@ public class RegisterOffice {
 	/**
 	 * @return total number of registered name
 	 */
-	public Integer totalRegistration() {
+	public int totalRegistration() {
 		return this.registration.size();
 	}
 

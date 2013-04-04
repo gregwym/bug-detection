@@ -63,7 +63,7 @@ public class CallGraphParser {
 		}
 
 		// Initialize mappings
-		Integer callerId = null; // Current scope's caller id
+		int callerId = -1; // Current scope's caller id
 		this.callerToCallee = new HashMap<Integer, Set<Integer>>();
 		this.calleeToCaller = new HashMap<Integer, Set<Integer>>();
 
@@ -81,11 +81,11 @@ public class CallGraphParser {
 				String caller = header.group(1);
 				callerId = this.registerOffice.register(caller);
 				this.callerToCallee.put(callerId, new HashSet<Integer>());
-			} else if (callerId != null && call.find()) {
+			} else if (callerId != -1 && call.find()) {
 				// If it matches with call pattern, register the callee name and
 				// save to both mapping
 				String callee = call.group(2);
-				Integer calleeId = this.registerOffice.register(callee);
+				int calleeId = this.registerOffice.register(callee);
 				this.callerToCallee.get(callerId).add(calleeId);
 
 				Set<Integer> callers = this.calleeToCaller.get(calleeId);

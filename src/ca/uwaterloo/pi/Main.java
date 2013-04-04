@@ -13,9 +13,9 @@ public class Main {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		Float confidenceThreshold = 0.65f;
-		Integer supportThreshold = 3;
-		Integer depth = 0;
+		float confidenceThreshold = 0.65f;
+		int supportThreshold = 3;
+		int depth = 0;
 
 		if (args.length > 2) {
 			supportThreshold = Integer.valueOf(args[1]);
